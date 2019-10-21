@@ -1,38 +1,35 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@ember/test-helpers';
-import { animationsSettled, TimeControl } from 'ember-animated/test-support';
+import { animationsSettled, setupAnimationTest, time } from 'ember-animated/test-support';
 import hbs from 'htmlbars-inline-precompile';
 import fade from 'ember-animated/transitions/fade';
 
 module('Integration | animated-if', function(hooks) {
-  let time;
-
   setupRenderingTest(hooks);
-
-  hooks.beforeEach(function() {
-    time = new TimeControl();
-  });
+  setupAnimationTest(hooks);
 
   test('it renders', async function(assert) {
     this.set('transition', fade);
-    this.set('items', ['foo', 'bar', 'buzz']);
+    this.set('shouldShow', true);
 
     await render(hbs`
+      {{unless this.shouldShow "The following text should be fading out now"}}
       <AnimatedContainer>
-        {{#animated-if this.items.length use=this.transition}}
+        {{#animated-if this.shouldShow use=this.transition}}
           <p>hello world</p>
         {{/animated-if}}
       </AnimatedContainer>
     `);
 
     await time.pause();
-    this.set('items', []);
+
+    this.set('shouldShow', false);
 
     await time.advance(400);
     await this.pauseTest();
-    await time.runAtSpeed(1);
 
+    await time.runAtSpeed(1);
     await animationsSettled();
 
     assert.ok(true);
