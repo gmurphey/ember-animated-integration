@@ -1,31 +1,40 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import { render, settled } from '@ember/test-helpers';
-import { setupAnimationTest, animationsSettled, time } from 'ember-animated/test-support';
+import { render } from '@ember/test-helpers';
+import { animationsSettled, TimeControl } from 'ember-animated/test-support';
 import hbs from 'htmlbars-inline-precompile';
+import fade from 'ember-animated/transitions/fade';
 
-module('Integration | Component | eacher', function(hooks) {
+module('Integration | animated-if', function(hooks) {
+  let time;
+
   setupRenderingTest(hooks);
-  setupAnimationTest(hooks);
+
+  hooks.beforeEach(function() {
+    time = new TimeControl();
+  });
 
   test('it renders', async function(assert) {
+    this.set('transition', fade);
     this.set('items', ['foo', 'bar', 'buzz']);
 
-    await time.pause();
-
     await render(hbs`
-      <Eacher @items={{this.items}}/>
+      <AnimatedContainer>
+        {{#animated-if this.items.length use=this.transition}}
+          <p>hello world</p>
+        {{/animated-if}}
+      </AnimatedContainer>
     `);
 
-    this.set('items', ['foo', 'bar']);
+    await time.pause();
+    this.set('items', []);
 
     await time.advance(400);
     await this.pauseTest();
-
-    time.runAtSpeed(1);
+    await time.runAtSpeed(1);
 
     await animationsSettled();
 
-    assert.dom('[data-item]').exists({ count: 2 });
+    assert.ok(true);
   });
 });
